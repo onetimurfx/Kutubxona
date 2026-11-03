@@ -16,10 +16,10 @@ npm run preview    # serve the production build
 
 ## Deploy to GitHub Pages
 
-1. Push this repository to GitHub as **kutubxona** (the Vite `base` is `/kutubxona/`).
+1. Push this repository to GitHub as **kutubxona** (GitHub currently shows it as `Kutubxona`) (the Vite `base` is taken from the repository name in CI).
 2. In the repository: **Settings → Pages → Build and deployment → Source: GitHub Actions**.
 3. Push to `main`. The workflow in `.github/workflows/deploy.yml` builds and publishes the site.
-4. The site is served at `https://<your-username>.github.io/kutubxona/`.
+4. The site is served at `https://<your-username>.github.io/<repository-name>/`.
 
 Using a different repository name? Build with `VITE_BASE=/<name>/ npm run build`, or edit `vite.config.ts`.
 
