@@ -1,0 +1,34 @@
+# KUTUBXONA — demo bookstore
+
+Independent demo website for a modern bookstore. React + TypeScript + Vite + Tailwind CSS + Framer Motion + Lucide.
+No backend, no API keys: demo data lives in the browser (`localStorage`).
+
+> This is a demonstration. Orders and print requests are never sent to a real business.
+
+## Run locally
+
+```bash
+npm install
+npm run dev        # development
+npm run build      # static production build -> dist/
+npm run preview    # serve the production build
+```
+
+## Deploy to GitHub Pages
+
+1. Push this repository to GitHub as **kutubxona** (the Vite `base` is `/kutubxona/`).
+2. In the repository: **Settings → Pages → Build and deployment → Source: GitHub Actions**.
+3. Push to `main`. The workflow in `.github/workflows/deploy.yml` builds and publishes the site.
+4. The site is served at `https://<your-username>.github.io/kutubxona/`.
+
+Using a different repository name? Build with `VITE_BASE=/<name>/ npm run build`, or edit `vite.config.ts`.
+
+Navigation uses hash routing (`#/search`), so refreshing any page works on GitHub Pages without a 404.
+
+## Progress
+
+- [x] Phase 1 — setup, design, intro animation, homepage, bottom navigation
+- [ ] Phase 2 — catalog, search, book details, recommendations, favorites, cart
+- [ ] Phase 3 — quick order, printing services, stationery, account
+- [ ] Phase 4 — demo admin panel
+- [ ] Phase 5 — testing, responsive polish, deployment
