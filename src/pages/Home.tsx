@@ -7,6 +7,7 @@ import { BookCard } from '../components/BookCard'
 import { BookCover } from '../components/BookCover'
 import { StationeryCard } from '../components/StationeryCard'
 import { Section } from '../components/Section'
+import { SimilarBooks } from '../components/SimilarBooks'
 import { useStore } from '../lib/store'
 
 const byFlag = (f: Book['flags'][number]) => BOOKS.filter((b) => b.flags.includes(f))
@@ -40,7 +41,8 @@ function CategoryRail({ category, to }: { category: Category; to: string }) {
 }
 
 export function Home() {
-  const { favorites } = useStore()
+  const { favorites, cart } = useStore()
+  const seeds = Array.from(new Set([...favorites, ...cart.filter((l) => l.kind === 'book').map((l) => l.id)]))
   const hero = [BOOKS[0], BOOKS[3], BOOKS[8]]
   const cat = (c: Category) => `/search?category=${encodeURIComponent(c)}`
 
@@ -52,7 +54,7 @@ export function Home() {
           <span className="rounded-full bg-saffron px-2 py-0.5 text-[11px] font-bold text-ink">DEMO</span>
         </div>
         <Link
-          to="/account"
+          to="/favorites"
           aria-label="Sevimlilar"
           className="relative grid size-10 place-items-center rounded-full bg-white shadow-sm"
         >
@@ -139,6 +141,8 @@ export function Home() {
       <Section title="Siz uchun tavsiyalar" to="/search?flag=recommended">
         <Rail books={byFlag('recommended')} />
       </Section>
+
+      {seeds.length > 0 && <SimilarBooks seeds={seeds} exclude={seeds} />}
 
       {CATEGORIES.map((c) => (
         <CategoryRail key={c.name} category={c.name} to={cat(c.name)} />

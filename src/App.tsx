@@ -1,13 +1,16 @@
 import { useCallback, useEffect, useState } from 'react'
-import { HashRouter, Route, Routes, useLocation } from 'react-router-dom'
+import { HashRouter, Link, Route, Routes, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Printer, Search, Settings, ShoppingBag, Shapes, User, Zap } from 'lucide-react'
+import { Printer, Search, Settings, Shapes, User, Zap } from 'lucide-react'
 import { StoreProvider, useStore } from './lib/store'
 import { Intro } from './components/Intro'
 import { BottomNav } from './components/BottomNav'
 import { Home } from './pages/Home'
 import { BookDetail } from './pages/BookDetail'
 import { Placeholder } from './pages/Placeholder'
+import { Search as SearchPage } from './pages/Search'
+import { Cart } from './pages/Cart'
+import { Favorites } from './pages/Favorites'
 
 const INTRO_KEY = 'kx:intro-seen'
 
@@ -66,10 +69,13 @@ export default function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/book/:id" element={<BookDetail />} />
-            <Route path="/search" element={<Placeholder icon={Search} title="Qidiruv" text="Kitob, muallif va mavzu bo‘yicha qidiruv keyingi bosqichda ishga tushadi." />} />
-            <Route path="/cart" element={<Placeholder icon={ShoppingBag} title="Savat" text="Savat sahifasi keyingi bosqichda ishga tushadi. Qo‘shilgan mahsulotlar saqlanib turibdi." />} />
+            <Route path="/search" element={<SearchPage />} />
+            <Route path="/favorites" element={<Favorites />} />
+            <Route path="/cart" element={<Cart />} />
             <Route path="/order" element={<Placeholder icon={Zap} title="Tez buyurtma" text="Buyurtma berish oqimi keyingi bosqichda ishga tushadi." />} />
-            <Route path="/account" element={<Placeholder icon={User} title="Hisob" text="Profil, sevimlilar va buyurtmalar tarixi keyingi bosqichda ishga tushadi." />} />
+            <Route path="/account" element={<Placeholder icon={User} title="Hisob" text="Profil va buyurtmalar tarixi keyingi bosqichda ishga tushadi. Sevimli kitoblaringiz hozir ham mavjud.">
+              <Link to="/favorites" className="rounded-full bg-white px-6 py-3 font-semibold shadow-sm">Sevimlilar</Link>
+            </Placeholder>} />
             <Route path="/stationery" element={<Placeholder icon={Shapes} title="Kanselyariya" text="Kanselyariya katalogi keyingi bosqichda ishga tushadi." />} />
             <Route path="/print" element={<Placeholder icon={Printer} title="Chop etish" text="Chop etish so‘rovi shakli keyingi bosqichda ishga tushadi." />} />
             <Route path="/admin" element={<Placeholder icon={Settings} title="Admin (demo)" text="Demo boshqaruv paneli keyingi bosqichda ishga tushadi." />} />

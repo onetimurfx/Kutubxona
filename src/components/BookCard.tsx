@@ -6,7 +6,7 @@ import { BookCover } from './BookCover'
 import { useStore } from '../lib/store'
 import { discountPercent, formatPrice } from '../lib/format'
 
-export function BookCard({ book, width = 148 }: { book: Book; width?: number }) {
+export function BookCard({ book, width = 148 }: { book: Book; width?: number | string }) {
   const { isFavorite, toggleFavorite, addToCart } = useStore()
   const fav = isFavorite(book.id)
   const off = discountPercent(book.price, book.oldPrice)

@@ -4,7 +4,7 @@ import type { StationeryItem } from '../data/types'
 import { useStore } from '../lib/store'
 import { formatPrice } from '../lib/format'
 
-const ICONS = {
+export const ICONS = {
   notebook: NotebookPen,
   pen: PenLine,
   pencil: Pencil,
