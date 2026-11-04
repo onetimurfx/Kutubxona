@@ -184,7 +184,7 @@ export function resolveLine(line: CartLine): ResolvedLine | null {
   }
   const s = STATIONERY.find((x) => x.id === line.id)
   return s
-    ? { key: `st:${s.id}`, line, title: s.name, subtitle: s.category, price: s.price, stock: s.stock, color: s.color, glyph: s.glyph }
+    ? { key: `st:${s.id}`, line, title: s.name, subtitle: s.category, price: s.price, stock: s.stock, link: `/stationery/${s.id}`, color: s.color, glyph: s.glyph }
     : null
 }
 

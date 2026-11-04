@@ -6,4 +6,5 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   base: process.env.VITE_BASE ?? '/Kutubxona/',
   plugins: [react(), tailwindcss()],
+  build: { chunkSizeWarningLimit: 800 },
 })

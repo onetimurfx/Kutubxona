@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
-import { HashRouter, Link, Route, Routes, useLocation } from 'react-router-dom'
+import { HashRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Printer, Search, Settings, Shapes, User, Zap } from 'lucide-react'
+import { Search, Settings } from 'lucide-react'
 import { StoreProvider, useStore } from './lib/store'
 import { Intro } from './components/Intro'
 import { BottomNav } from './components/BottomNav'
@@ -11,6 +11,12 @@ import { Placeholder } from './pages/Placeholder'
 import { Search as SearchPage } from './pages/Search'
 import { Cart } from './pages/Cart'
 import { Favorites } from './pages/Favorites'
+import { Order } from './pages/Order'
+import { OrderDetail } from './pages/OrderDetail'
+import { Stationery } from './pages/Stationery'
+import { StationeryDetail } from './pages/StationeryDetail'
+import { Print } from './pages/Print'
+import { Account } from './pages/Account'
 
 const INTRO_KEY = 'kx:intro-seen'
 
@@ -72,12 +78,12 @@ export default function App() {
             <Route path="/search" element={<SearchPage />} />
             <Route path="/favorites" element={<Favorites />} />
             <Route path="/cart" element={<Cart />} />
-            <Route path="/order" element={<Placeholder icon={Zap} title="Tez buyurtma" text="Buyurtma berish oqimi keyingi bosqichda ishga tushadi." />} />
-            <Route path="/account" element={<Placeholder icon={User} title="Hisob" text="Profil va buyurtmalar tarixi keyingi bosqichda ishga tushadi. Sevimli kitoblaringiz hozir ham mavjud.">
-              <Link to="/favorites" className="rounded-full bg-white px-6 py-3 font-semibold shadow-sm">Sevimlilar</Link>
-            </Placeholder>} />
-            <Route path="/stationery" element={<Placeholder icon={Shapes} title="Kanselyariya" text="Kanselyariya katalogi keyingi bosqichda ishga tushadi." />} />
-            <Route path="/print" element={<Placeholder icon={Printer} title="Chop etish" text="Chop etish so‘rovi shakli keyingi bosqichda ishga tushadi." />} />
+            <Route path="/order" element={<Order />} />
+            <Route path="/order/:id" element={<OrderDetail />} />
+            <Route path="/account" element={<Account />} />
+            <Route path="/stationery" element={<Stationery />} />
+            <Route path="/stationery/:id" element={<StationeryDetail />} />
+            <Route path="/print" element={<Print />} />
             <Route path="/admin" element={<Placeholder icon={Settings} title="Admin (demo)" text="Demo boshqaruv paneli keyingi bosqichda ishga tushadi." />} />
             <Route path="*" element={<Placeholder icon={Search} title="Sahifa topilmadi" text="Bu manzil mavjud emas." />} />
           </Routes>

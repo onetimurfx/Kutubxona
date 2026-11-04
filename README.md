@@ -29,6 +29,6 @@ Navigation uses hash routing (`#/search`), so refreshing any page works on GitHu
 
 - [x] Phase 1 — setup, design, intro animation, homepage, bottom navigation
 - [x] Phase 2 — catalog, search, book details, recommendations, favorites, cart
-- [ ] Phase 3 — quick order, printing services, stationery, account
+- [x] Phase 3 — quick order, printing services, stationery, account
 - [ ] Phase 4 — demo admin panel
 - [ ] Phase 5 — testing, responsive polish, deployment
