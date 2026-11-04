@@ -8,6 +8,7 @@ import { TrackLookup } from '../components/TrackLookup'
 import { formatDateTime, formatPrice } from '../lib/format'
 import { ORDER_LABELS, nextStatus } from '../lib/orders'
 import { useStore } from '../lib/store'
+import { getBook, getStationeryItem, useCatalog } from '../lib/catalogStore'
 
 const MESSAGES = {
   received: 'Buyurtmangiz qabul qilindi. Tez orada tayyorlashni boshlaymiz.',
@@ -20,6 +21,7 @@ export function OrderDetail() {
   const { id = '' } = useParams()
   const [params] = useSearchParams()
   const { orders, advanceOrder, showToast } = useStore()
+  useCatalog()
   const order = orders.find((o) => o.id === id.toUpperCase())
   const isNew = params.get('new') === '1'
 
@@ -106,9 +108,13 @@ export function OrderDetail() {
           {order.lines.map((l) => (
             <li key={l.kind + l.id} className="flex items-start justify-between gap-3 py-3">
               <div className="min-w-0">
-                <Link to={l.kind === 'book' ? `/book/${l.id}` : `/stationery/${l.id}`} className="line-clamp-2 font-semibold leading-snug hover:underline">
-                  {l.title}
-                </Link>
+                {(l.kind === 'book' ? getBook(l.id) : getStationeryItem(l.id)) ? (
+                  <Link to={l.kind === 'book' ? `/book/${l.id}` : `/stationery/${l.id}`} className="line-clamp-2 font-semibold leading-snug hover:underline">
+                    {l.title}
+                  </Link>
+                ) : (
+                  <span className="line-clamp-2 font-semibold leading-snug">{l.title}</span>
+                )}
                 <p className="text-sm text-ink-soft">
                   {l.subtitle} · {l.qty} × {formatPrice(l.price)}
                 </p>

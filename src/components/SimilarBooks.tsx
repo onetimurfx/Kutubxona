@@ -1,4 +1,5 @@
 import { similarBooks, popularBooks } from '../lib/catalog'
+import { useCatalog } from '../lib/catalogStore'
 import { BookCard } from './BookCard'
 
 /** "SHUNGA O'XSHASH KITOBLAR" — recommendations based on one or more seed books. */
@@ -11,6 +12,7 @@ export function SimilarBooks({
   exclude?: string[]
   fallbackToPopular?: boolean
 }) {
+  useCatalog() // re-render when the admin changes the catalog
   let books = similarBooks(seeds, exclude)
   if (!books.length && fallbackToPopular) books = popularBooks([...seeds, ...exclude])
   if (!books.length) return null

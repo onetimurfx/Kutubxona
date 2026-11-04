@@ -1,7 +1,9 @@
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { resolveLine, stockOf } from './catalog'
 import type { Order, PrintRequest, Profile, Status } from '../data/types'
-import { makeNumber, nextStatus } from './orders'
+import { ORDER_LABELS, PRINT_LABELS, makeNumber, nextStatus } from './orders'
+import { deductStock, getBook, getBooks, getStationery, resetCatalogAndActivity, restoreStock, useCatalog } from './catalogStore'
+import { makeSampleData } from './sample'
 
 export interface CartLine {
   kind: 'book' | 'stationery'
@@ -24,9 +26,13 @@ interface StoreValue {
   orders: Order[]
   placeOrder: (name: string, phone: string) => Order | null
   advanceOrder: (id: string) => void
+  setOrderStatus: (id: string, status: Status) => void
   printRequests: PrintRequest[]
   addPrintRequest: (r: Omit<PrintRequest, 'id' | 'createdAt' | 'status' | 'history'>) => PrintRequest
   advancePrint: (id: string) => void
+  setPrintStatus: (id: string, status: Status) => void
+  loadSampleData: () => void
+  resetAll: () => void
   profile: Profile
   saveProfile: (p: Profile) => void
   resetDemo: () => void
@@ -60,6 +66,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [printRequests, setPrintRequests] = useState<PrintRequest[]>(() => load('kx:prints', []))
   const [profile, setProfile] = useState<Profile>(() => load('kx:profile', { name: '', phone: '' }))
   const [toast, setToast] = useState<string | null>(null)
+  const catalog = useCatalog()
+  // always holds the newest orders, so two quick clicks can never act on stale data
+  const ordersRef = useRef(orders)
+  ordersRef.current = orders
 
   useEffect(() => {
     save('kx:favorites', favorites)
@@ -76,11 +86,63 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     save('kx:profile', profile)
   }, [profile])
+  // The admin may delete products, lower stock or hide them: keep cart and favorites consistent with the catalog.
+  useEffect(() => {
+    let changed = false
+    const nextCart: CartLine[] = []
+    for (const l of cart) {
+      const r = resolveLine(l)
+      if (!r || r.stock <= 0) {
+        changed = true
+        continue
+      }
+      if (l.qty > r.stock) {
+        changed = true
+        nextCart.push({ ...l, qty: r.stock })
+        continue
+      }
+      nextCart.push(l)
+    }
+    if (changed) {
+      setCart(nextCart)
+      setToast('Savat mahsulotlar zaxirasiga moslashtirildi')
+    }
+    const nextFavs = favorites.filter((id) => getBook(id))
+    if (nextFavs.length !== favorites.length) setFavorites(nextFavs)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [catalog])
   useEffect(() => {
     if (!toast) return
     const t = window.setTimeout(() => setToast(null), 1800)
     return () => window.clearTimeout(t)
   }, [toast])
+
+  /** The single place where an order changes status. Stock moves exactly once: out on `completed`, back in if re-opened. */
+  const applyOrderStatus = (id: string, status: Status) => {
+    const list = ordersRef.current
+    const o = list.find((x) => x.id === id)
+    if (!o || o.status === status) return
+    let stockDeducted = o.stockDeducted
+    let short = false
+    if (status === 'completed' && !stockDeducted) {
+      stockDeducted = deductStock(o.lines.map((l) => ({ kind: l.kind, id: l.id, qty: l.qty })))
+      const ordered = o.lines.reduce((n, l) => n + l.qty, 0)
+      short = stockDeducted.reduce((n, d) => n + d.qty, 0) < ordered
+    } else if (o.status === 'completed' && status !== 'completed' && stockDeducted) {
+      restoreStock(stockDeducted)
+      stockDeducted = undefined
+    }
+    const updated: Order = { ...o, status, stockDeducted, history: [...o.history, { status, at: Date.now() }] }
+    const next = list.map((x) => (x.id === id ? updated : x))
+    ordersRef.current = next
+    setOrders(next)
+    setToast(`${id}: ${ORDER_LABELS[status]}${short ? ' (zaxira yetarli emas edi, 0 ga tushirildi)' : ''}`)
+  }
+
+  const applyPrintStatus = (id: string, status: Status) => {
+    setPrintRequests((list) => list.map((p) => (p.id === id && p.status !== status ? { ...p, status, history: [...p.history, { status, at: Date.now() }] } : p)))
+    setToast(`${id}: ${PRINT_LABELS[status]}`)
+  }
 
   const value = useMemo<StoreValue>(
     () => ({
@@ -92,7 +154,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         setToast(has ? 'Sevimlilardan olib tashlandi' : "Sevimlilarga qo'shildi")
       },
       cart,
-      cartCount: cart.reduce((n, l) => n + l.qty, 0),
+      cartCount: cart.reduce((n, l) => (resolveLine(l) ? n + l.qty : n), 0),
       addToCart: (kind, id) => {
         const stock = stockOf(kind, id)
         const cur = cart.find((l) => l.kind === kind && l.id === id)?.qty ?? 0
@@ -167,13 +229,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         return order
       },
       advanceOrder: (id) => {
-        setOrders((list) =>
-          list.map((o) => {
-            const n = o.id === id ? nextStatus(o.status) : null
-            return n ? { ...o, status: n, history: [...o.history, { status: n as Status, at: Date.now() }] } : o
-          }),
-        )
+        const n = nextStatus(ordersRef.current.find((o) => o.id === id)?.status ?? 'completed')
+        if (n) applyOrderStatus(id, n)
       },
+      setOrderStatus: (id, status) => applyOrderStatus(id, status),
       printRequests,
       addPrintRequest: (r) => {
         const now = Date.now()
@@ -189,12 +248,27 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         return req
       },
       advancePrint: (id) => {
-        setPrintRequests((list) =>
-          list.map((p) => {
-            const n = p.id === id ? nextStatus(p.status) : null
-            return n ? { ...p, status: n, history: [...p.history, { status: n as Status, at: Date.now() }] } : p
-          }),
-        )
+        const n = nextStatus(printRequests.find((p) => p.id === id)?.status ?? 'completed')
+        if (n) applyPrintStatus(id, n)
+      },
+      setPrintStatus: (id, status) => applyPrintStatus(id, status),
+      loadSampleData: () => {
+        const { orders: o, prints: p } = makeSampleData(getBooks(), getStationery(), orders.map((x) => x.id), printRequests.map((x) => x.id))
+        const mergedOrders = [...orders, ...o].sort((x, y) => y.createdAt - x.createdAt)
+        ordersRef.current = mergedOrders
+        setOrders(mergedOrders)
+        setPrintRequests([...printRequests, ...p].sort((x, y) => y.createdAt - x.createdAt))
+        setToast(`${o.length} ta buyurtma va ${p.length} ta chop etish so‘rovi qo‘shildi`)
+      },
+      resetAll: () => {
+        ordersRef.current = []
+        setFavorites([])
+        setCart([])
+        setOrders([])
+        setPrintRequests([])
+        setProfile({ name: '', phone: '' })
+        resetCatalogAndActivity()
+        setToast('Barcha demo ma’lumotlari boshlang‘ich holatga qaytarildi')
       },
       profile,
       saveProfile: (p) => {

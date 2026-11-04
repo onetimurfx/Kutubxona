@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowRight, Heart, Package, Printer, RotateCcw, Save } from 'lucide-react'
-import { BOOKS } from '../data/books'
+import { useCatalog } from '../lib/catalogStore'
 import { BookCard } from '../components/BookCard'
 import { DemoNotice } from '../components/DemoNotice'
 import { MiniProgress, StatusChip } from '../components/StatusChip'
@@ -22,6 +22,7 @@ const field =
 
 export function Account() {
   const { profile, saveProfile, orders, printRequests, favorites, resetDemo } = useStore()
+  const { books: BOOKS } = useCatalog()
   const [params, setParams] = useSearchParams()
   const tab: Tab = TABS.some((t) => t.id === params.get('tab')) ? (params.get('tab') as Tab) : 'orders'
   const setTab = (t: Tab) => setParams({ tab: t }, { replace: true })
@@ -245,6 +246,10 @@ export function Account() {
           </button>
         )}
       </section>
+
+      <p className="mt-6 text-center text-xs text-ink-soft">
+        <Link to="/admin" className="underline-offset-4 hover:underline">Demo admin panel</Link> (namuna, himoyalanmagan)
+      </p>
     </div>
   )
 }

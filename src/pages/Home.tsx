@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom'
 import { ArrowRight, BookOpen, Church, FlaskConical, Heart, Printer, Search, Shapes, TrendingUp } from 'lucide-react'
-import { BOOKS } from '../data/books'
-import { STATIONERY } from '../data/stationery'
+import { useCatalog } from '../lib/catalogStore'
 import type { Book, Category } from '../data/types'
 import { BookCard } from '../components/BookCard'
 import { BookCover } from '../components/BookCover'
@@ -10,8 +9,6 @@ import { Section } from '../components/Section'
 import { SimilarBooks } from '../components/SimilarBooks'
 import { useStore } from '../lib/store'
 
-const byFlag = (f: Book['flags'][number]) => BOOKS.filter((b) => b.flags.includes(f))
-const discounted = BOOKS.filter((b) => b.oldPrice)
 
 const CATEGORIES: { name: Category; icon: typeof BookOpen; color: string; dark?: boolean }[] = [
   { name: 'Badiiy adabiyot', icon: BookOpen, color: '#C23B4E' },
@@ -31,8 +28,9 @@ function Rail({ books }: { books: Book[] }) {
   )
 }
 
-function CategoryRail({ category, to }: { category: Category; to: string }) {
-  const books = BOOKS.filter((b) => b.category === category)
+function CategoryRail({ category, to, all }: { category: Category; to: string; all: Book[] }) {
+  const books = all.filter((b) => b.category === category)
+  if (!books.length) return null
   return (
     <Section title={category} to={to}>
       <Rail books={books} />
@@ -42,8 +40,13 @@ function CategoryRail({ category, to }: { category: Category; to: string }) {
 
 export function Home() {
   const { favorites, cart } = useStore()
+  const { books: BOOKS, stationery: STATIONERY } = useCatalog()
+  const byFlag = (f: Book['flags'][number]) => BOOKS.filter((b) => b.flags.includes(f))
+  const discounted = BOOKS.filter((b) => b.oldPrice)
   const seeds = Array.from(new Set([...favorites, ...cart.filter((l) => l.kind === 'book').map((l) => l.id)]))
-  const hero = [BOOKS[0], BOOKS[3], BOOKS[8]]
+  const pick = (id: string) => BOOKS.find((b) => b.id === id)
+  const preferred = ['otkan-kunlar', 'alkimyogar', 'sapiens'].map(pick).filter((b): b is Book => Boolean(b))
+  const hero = [...preferred, ...BOOKS.filter((b) => !preferred.includes(b))].slice(0, 3)
   const cat = (c: Category) => `/search?category=${encodeURIComponent(c)}`
 
   return (
@@ -145,7 +148,7 @@ export function Home() {
       {seeds.length > 0 && <SimilarBooks seeds={seeds} exclude={seeds} />}
 
       {CATEGORIES.map((c) => (
-        <CategoryRail key={c.name} category={c.name} to={cat(c.name)} />
+        <CategoryRail key={c.name} category={c.name} to={cat(c.name)} all={BOOKS} />
       ))}
 
       <Section title="Kanselyariya" to="/stationery">

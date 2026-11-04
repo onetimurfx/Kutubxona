@@ -3,13 +3,15 @@ import { Minus, Plus, ShoppingBag, Trash2, Zap } from 'lucide-react'
 import { BookCover } from '../components/BookCover'
 import { EmptyState } from '../components/EmptyState'
 import { SimilarBooks } from '../components/SimilarBooks'
-import { ICONS } from '../components/StationeryCard'
 import { resolveLine } from '../lib/catalog'
+import { useCatalog } from '../lib/catalogStore'
+import { StationeryThumb } from '../components/StationeryThumb'
 import { formatPrice } from '../lib/format'
 import { useStore } from '../lib/store'
 
 export function Cart() {
   const { cart, setQty, removeLine, clearCart } = useStore()
+  useCatalog()
   const lines = cart.map(resolveLine).filter((l): l is NonNullable<typeof l> => l !== null)
   const count = lines.reduce((n, l) => n + l.line.qty, 0)
   const total = lines.reduce((sum, l) => sum + l.price * l.line.qty, 0)
@@ -44,7 +46,6 @@ export function Cart() {
         <div className="mt-5 md:grid md:grid-cols-[1fr_300px] md:items-start md:gap-8">
           <ul className="space-y-4">
             {lines.map((l) => {
-              const Icon = l.glyph ? ICONS[l.glyph] : null
               const atMax = l.line.qty >= l.stock
               return (
                 <li key={l.key} className="flex gap-4 rounded-2xl bg-white p-3 shadow-sm">
@@ -54,9 +55,7 @@ export function Cart() {
                         <BookCover title={l.book.title} author={l.book.author} cover={l.book.cover} />
                       </Link>
                     ) : (
-                      <div className="grid aspect-square place-items-center rounded-xl" style={{ background: l.color }}>
-                        {Icon && <Icon className="size-8 text-white" strokeWidth={1.5} />}
-                      </div>
+                      <StationeryThumb color={l.color!} glyph={l.glyph!} image={l.image} className="aspect-square rounded-xl" iconClass="size-8" />
                     )}
                   </div>
                   <div className="flex min-w-0 flex-1 flex-col">

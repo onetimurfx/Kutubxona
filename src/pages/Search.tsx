@@ -2,9 +2,9 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Search as SearchIcon, SearchX, SlidersHorizontal, X } from 'lucide-react'
-import { BOOKS } from '../data/books'
 import type { Book } from '../data/types'
-import { AUTHORS, CATEGORY_LIST, TOPICS, searchBooks, suggest } from '../lib/catalog'
+import { CATEGORY_LIST, TOPICS, getAuthors, searchBooks, suggest } from '../lib/catalog'
+import { isSellable, useCatalog } from '../lib/catalogStore'
 import { discountPercent } from '../lib/format'
 import { BookCard } from '../components/BookCard'
 import { EmptyState } from '../components/EmptyState'
@@ -38,6 +38,7 @@ const chip = (on: boolean) =>
   `shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition-colors ${on ? 'bg-ink text-white' : 'bg-white text-ink shadow-sm'}`
 
 export function Search() {
+  const catalog = useCatalog()
   const [params, setParams] = useSearchParams()
   const urlQ = params.get('q') ?? ''
   const category = params.get('category') ?? ''
@@ -84,7 +85,7 @@ export function Search() {
     let list = searchBooks(q)
     if (category) list = list.filter((b) => b.category === category)
     if (flag && FLAGS[flag]) list = list.filter(FLAGS[flag].test)
-    if (inStock) list = list.filter((b) => b.stock > 0)
+    if (inStock) list = list.filter(isSellable)
     if (onSale) list = list.filter(FLAGS.sale.test)
     if (price) {
       const [lo, hi] = price.split('-').map((x) => (x ? Number(x) : null))
@@ -100,9 +101,9 @@ export function Search() {
     }
     if (by[sort]) sorted.sort(by[sort])
     return sorted
-  }, [q, category, flag, sort, price, inStock, onSale])
+  }, [q, category, flag, sort, price, inStock, onSale, catalog])
 
-  const suggestions = useMemo(() => (focused ? suggest(q) : []), [q, focused])
+  const suggestions = useMemo(() => (focused ? suggest(q) : []), [q, focused, catalog])
   const activeFilters = [price, inStock ? '1' : '', onSale ? '1' : '', flag].filter(Boolean).length
   const anyFilter = Boolean(q || category || activeFilters)
   const clearAll = () => {
@@ -249,7 +250,7 @@ export function Search() {
             </div>
             <p className="mb-2 mt-4 text-sm font-semibold text-ink-soft">Mualliflar</p>
             <div className="flex flex-wrap gap-2">
-              {AUTHORS.map((a) => (
+              {getAuthors().map((a) => (
                 <button key={a} onClick={() => setQuery(a)} className="rounded-full bg-white px-3.5 py-1.5 text-sm font-medium shadow-sm">
                   {a}
                 </button>
@@ -287,7 +288,7 @@ export function Search() {
       {results.length > 0 && anyFilter ? (
         <SimilarBooks seeds={results.slice(0, 3).map((b) => b.id)} exclude={results.map((b) => b.id)} />
       ) : results.length === 0 ? (
-        <SimilarBooks seeds={BOOKS.filter((b) => b.flags.includes('bestseller')).map((b) => b.id)} fallbackToPopular />
+        <SimilarBooks seeds={catalog.books.filter((b) => b.flags.includes('bestseller')).map((b) => b.id)} fallbackToPopular />
       ) : null}
     </div>
   )

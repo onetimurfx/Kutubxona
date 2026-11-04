@@ -76,9 +76,13 @@ export function BookCover({ title, author, cover, className = '' }: Props) {
     >
       {/* spine shading */}
       <div
-        className="absolute inset-y-0 left-0 w-[9%]"
+        className="absolute inset-y-0 left-0 z-10 w-[9%]"
         style={{ background: 'linear-gradient(90deg, rgba(0,0,0,.28), rgba(255,255,255,.12) 60%, transparent)' }}
       />
+      {cover.image ? (
+        <img src={cover.image} alt="" className="absolute inset-0 size-full object-cover" />
+      ) : (
+        <>
       <svg viewBox="-50 -50 100 100" className="absolute left-[14%] top-[4%] w-[76%] opacity-90" aria-hidden>
         <Motif motif={cover.motif} color={cover.accent} />
       </svg>
@@ -94,6 +98,8 @@ export function BookCover({ title, author, cover, className = '' }: Props) {
         </div>
       </div>
       <div className="absolute bottom-0 left-[14%] h-[2.2%] w-[22%]" style={{ background: cover.accent }} />
+        </>
+      )}
     </div>
   )
 }

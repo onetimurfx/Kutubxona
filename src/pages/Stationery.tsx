@@ -1,13 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Search as SearchIcon, SearchX, X } from 'lucide-react'
-import { STATIONERY } from '../data/stationery'
-import type { StationeryCategory } from '../data/types'
+import { isSellable, useCatalog } from '../lib/catalogStore'
 import { EmptyState } from '../components/EmptyState'
 import { StationeryCard } from '../components/StationeryCard'
 import { norm } from '../lib/catalog'
 
-const CATEGORIES: StationeryCategory[] = ['Daftarlar', 'Ruchkalar', 'Qalamlar', "Qog'oz", 'Maktab buyumlari', 'Ofis buyumlari']
 const SORTS = [
   { v: 'default', label: 'Odatiy tartib' },
   { v: 'price-asc', label: 'Narx: arzondan qimmatga' },
@@ -19,6 +17,8 @@ const chip = (on: boolean) =>
   `shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition-colors ${on ? 'bg-ink text-white' : 'bg-white text-ink shadow-sm'}`
 
 export function Stationery() {
+  const { stationery: STATIONERY } = useCatalog()
+  const CATEGORIES = useMemo(() => Array.from(new Set(STATIONERY.map((s) => s.category))), [STATIONERY])
   const [params, setParams] = useSearchParams()
   const category = params.get('category') ?? ''
   const sort = params.get('sort') ?? 'default'
@@ -45,7 +45,7 @@ export function Stationery() {
     const tokens = norm(q).split(' ').filter(Boolean)
     let list = STATIONERY.filter((s) => {
       if (category && s.category !== category) return false
-      if (inStock && s.stock === 0) return false
+      if (inStock && !isSellable(s)) return false
       const hay = norm(`${s.name} ${s.category} ${s.description}`)
       return tokens.every((t) => hay.includes(t))
     })
@@ -53,7 +53,7 @@ export function Stationery() {
     if (sort === 'price-desc') list = [...list].sort((a, b) => b.price - a.price)
     if (sort === 'name') list = [...list].sort((a, b) => a.name.localeCompare(b.name, 'uz'))
     return list
-  }, [q, category, sort, inStock])
+  }, [STATIONERY, q, category, sort, inStock])
 
   const clear = () => {
     setQ('')

@@ -4,13 +4,14 @@ import { motion } from 'framer-motion'
 import type { Book } from '../data/types'
 import { BookCover } from './BookCover'
 import { useStore } from '../lib/store'
+import { isSellable } from '../lib/catalogStore'
 import { discountPercent, formatPrice } from '../lib/format'
 
 export function BookCard({ book, width = 148 }: { book: Book; width?: number | string }) {
   const { isFavorite, toggleFavorite, addToCart } = useStore()
   const fav = isFavorite(book.id)
   const off = discountPercent(book.price, book.oldPrice)
-  const sold = book.stock === 0
+  const sold = !isSellable(book)
 
   return (
     <article style={{ width }} className="group">

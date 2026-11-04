@@ -1,8 +1,9 @@
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, Check, PackageX, ShoppingBag } from 'lucide-react'
-import { STATIONERY } from '../data/stationery'
+import { effectiveStock, isLowStock, useCatalog } from '../lib/catalogStore'
+import { StationeryThumb } from '../components/StationeryThumb'
 import { EmptyState } from '../components/EmptyState'
-import { ICONS, StationeryCard } from '../components/StationeryCard'
+import { StationeryCard } from '../components/StationeryCard'
 import { QtyStepper } from '../components/QtyStepper'
 import { formatPrice } from '../lib/format'
 import { useStore } from '../lib/store'
@@ -11,6 +12,7 @@ export function StationeryDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { addToCart, qtyInCart, setQty } = useStore()
+  const { stationery: STATIONERY } = useCatalog()
   const item = STATIONERY.find((s) => s.id === id)
   const back = () => ((window.history.state?.idx ?? 0) > 0 ? navigate(-1) : navigate('/stationery'))
 
@@ -26,10 +28,10 @@ export function StationeryDetail() {
     )
   }
 
-  const Icon = ICONS[item.glyph]
   const inCart = qtyInCart('stationery', item.id)
-  const sold = item.stock === 0
-  const low = !sold && item.stock <= 10
+  const stock = effectiveStock(item)
+  const sold = stock === 0
+  const low = isLowStock(item)
   const related = STATIONERY.filter((s) => s.category === item.category && s.id !== item.id)
   const more = related.length ? related : STATIONERY.filter((s) => s.id !== item.id).slice(0, 6)
 
@@ -40,9 +42,7 @@ export function StationeryDetail() {
           <ArrowLeft className="size-4" /> Orqaga
         </button>
         <div className="mt-2 sm:flex sm:gap-10">
-          <div className={`mx-auto grid aspect-square w-60 shrink-0 place-items-center rounded-3xl sm:mx-0 sm:w-72 ${sold ? 'opacity-60' : ''}`} style={{ background: item.color }}>
-            <Icon className="size-1/3 text-white" strokeWidth={1.4} />
-          </div>
+          <StationeryThumb color={item.color} glyph={item.glyph} image={item.image} className={`mx-auto aspect-square w-60 shrink-0 rounded-3xl sm:mx-0 sm:w-72 ${sold ? 'opacity-60' : ''}`} />
           <div className="mt-6 min-w-0 sm:mt-0">
             <Link to={`/stationery?category=${encodeURIComponent(item.category)}`} className="text-sm font-semibold text-teal hover:underline">
               {item.category}
@@ -57,12 +57,12 @@ export function StationeryDetail() {
             </dl>
             <p className={`mt-4 flex items-center gap-1.5 text-sm font-semibold ${sold ? 'text-anor' : 'text-teal'}`}>
               {!sold && <Check className="size-4" />}
-              {sold ? 'Hozircha sotuvda yo‘q' : low ? `Sotuvda bor — atigi ${item.stock} dona qoldi` : `Sotuvda bor (${item.stock} dona)`}
+              {sold ? 'Hozircha sotuvda yo‘q' : low ? `Sotuvda bor — atigi ${stock} dona qoldi` : `Sotuvda bor (${stock} dona)`}
             </p>
             <p className="mt-3 text-3xl font-extrabold">{formatPrice(item.price)}</p>
             <div className="mt-5 flex flex-wrap items-center gap-3">
               {inCart > 0 ? (
-                <QtyStepper qty={inCart} max={item.stock} onChange={(n) => setQty('stationery', item.id, n)} tone="dark" label={item.name} />
+                <QtyStepper qty={inCart} max={stock} onChange={(n) => setQty('stationery', item.id, n)} tone="dark" label={item.name} />
               ) : (
                 <button
                   disabled={sold}

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { HashRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Search, Settings } from 'lucide-react'
+import { Search } from 'lucide-react'
 import { StoreProvider, useStore } from './lib/store'
 import { Intro } from './components/Intro'
 import { BottomNav } from './components/BottomNav'
@@ -17,6 +17,14 @@ import { Stationery } from './pages/Stationery'
 import { StationeryDetail } from './pages/StationeryDetail'
 import { Print } from './pages/Print'
 import { Account } from './pages/Account'
+import { AdminLayout } from './admin/AdminLayout'
+import { Overview } from './admin/Overview'
+import { AdminBooks } from './admin/Books'
+import { AdminStationery } from './admin/Stationery'
+import { AdminOrders, AdminOrderDetail } from './admin/Orders'
+import { AdminPrint } from './admin/Print'
+import { AdminInventory } from './admin/Inventory'
+import { AdminData } from './admin/DataPage'
 
 const INTRO_KEY = 'kx:intro-seen'
 
@@ -26,6 +34,12 @@ function ScrollToTop() {
     window.scrollTo(0, 0)
   }, [pathname])
   return null
+}
+
+/** the five-button bottom bar belongs to the shop only — never shown inside the admin panel */
+function CustomerChrome() {
+  const { pathname } = useLocation()
+  return pathname.startsWith('/admin') ? null : <BottomNav />
 }
 
 function Toast() {
@@ -84,11 +98,21 @@ export default function App() {
             <Route path="/stationery" element={<Stationery />} />
             <Route path="/stationery/:id" element={<StationeryDetail />} />
             <Route path="/print" element={<Print />} />
-            <Route path="/admin" element={<Placeholder icon={Settings} title="Admin (demo)" text="Demo boshqaruv paneli keyingi bosqichda ishga tushadi." />} />
+            <Route path="/admin" element={<AdminLayout />}>
+              <Route index element={<Overview />} />
+              <Route path="books" element={<AdminBooks />} />
+              <Route path="stationery" element={<AdminStationery />} />
+              <Route path="orders" element={<AdminOrders />} />
+              <Route path="orders/:id" element={<AdminOrderDetail />} />
+              <Route path="print" element={<AdminPrint />} />
+              <Route path="inventory" element={<AdminInventory />} />
+              <Route path="data" element={<AdminData />} />
+              <Route path="*" element={<Placeholder icon={Search} title="Admin sahifa topilmadi" text="Chap menyudan bo‘limni tanlang." />} />
+            </Route>
             <Route path="*" element={<Placeholder icon={Search} title="Sahifa topilmadi" text="Bu manzil mavjud emas." />} />
           </Routes>
         </main>
-        <BottomNav />
+        <CustomerChrome />
         <Toast />
       </HashRouter>
       <AnimatePresence>{showIntro && <Intro onDone={finish} />}</AnimatePresence>

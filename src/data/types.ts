@@ -12,6 +12,8 @@ export interface CoverStyle {
   fg: string
   accent: string
   motif: Motif
+  /** admin-uploaded cover photo (compressed data URL); replaces the typeset cover */
+  image?: string
 }
 
 export interface Book {
@@ -30,15 +32,11 @@ export interface Book {
   rating: number
   flags: Array<'new' | 'popular' | 'bestseller' | 'recommended'>
   cover: CoverStyle
+  /** false = hidden from sale even if in stock (default true) */
+  available?: boolean
 }
 
-export type StationeryCategory =
-  | 'Daftarlar'
-  | 'Ruchkalar'
-  | 'Qalamlar'
-  | "Qog'oz"
-  | 'Maktab buyumlari'
-  | 'Ofis buyumlari'
+export type StationeryCategory = string
 
 export interface StationeryItem {
   id: string
@@ -49,6 +47,8 @@ export interface StationeryItem {
   stock: number
   color: string
   glyph: 'notebook' | 'pen' | 'pencil' | 'paper' | 'backpack' | 'stapler' | 'ruler' | 'folder'
+  image?: string
+  available?: boolean
 }
 
 /* ---------- Phase 3: orders, print requests, profile (demo data kept in localStorage) ---------- */
@@ -73,6 +73,8 @@ export interface Order {
   total: number
   status: Status
   history: { status: Status; at: number }[]
+  /** set once stock has been deducted for this order (completed); holds the exact amounts so they can be restored */
+  stockDeducted?: { kind: 'book' | 'stationery'; id: string; qty: number }[]
 }
 
 export type PrintService = 'book' | 'document' | 'copy' | 'binding'
@@ -100,4 +102,9 @@ export interface PrintRequest {
 export interface Profile {
   name: string
   phone: string
+}
+
+export interface ActivityItem {
+  at: number
+  text: string
 }

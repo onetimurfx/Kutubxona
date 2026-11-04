@@ -1,6 +1,6 @@
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, BookX, Check, Heart, Minus, Plus, ShoppingBag, Star } from 'lucide-react'
-import { BOOKS } from '../data/books'
+import { effectiveStock, isLowStock, isSellable, useCatalog } from '../lib/catalogStore'
 import { BookCover } from '../components/BookCover'
 import { EmptyState } from '../components/EmptyState'
 import { SimilarBooks } from '../components/SimilarBooks'
@@ -10,7 +10,8 @@ import { discountPercent, formatPrice } from '../lib/format'
 export function BookDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const book = BOOKS.find((b) => b.id === id)
+  const { books } = useCatalog()
+  const book = books.find((b) => b.id === id)
   const { isFavorite, toggleFavorite, addToCart, qtyInCart, setQty } = useStore()
 
   // React Router stores its position in history.state.idx; 0 means this page was opened directly.
@@ -32,10 +33,11 @@ export function BookDetail() {
   }
 
   const fav = isFavorite(book.id)
-  const sold = book.stock === 0
+  const sold = !isSellable(book)
+  const stock = effectiveStock(book)
   const inCart = qtyInCart('book', book.id)
   const off = discountPercent(book.price, book.oldPrice)
-  const low = !sold && book.stock <= 10
+  const low = isLowStock(book)
 
   return (
     <div className="mx-auto max-w-4xl pb-36 pt-[max(12px,env(safe-area-inset-top))]">
@@ -83,7 +85,7 @@ export function BookDetail() {
 
             <p className={`mt-4 flex items-center gap-1.5 text-sm font-semibold ${sold ? 'text-anor' : 'text-teal'}`}>
               {!sold && <Check className="size-4" />}
-              {sold ? 'Hozircha sotuvda yo‘q' : low ? `Sotuvda bor — atigi ${book.stock} dona qoldi` : `Sotuvda bor (${book.stock} dona)`}
+              {sold ? 'Hozircha sotuvda yo‘q' : low ? `Sotuvda bor — atigi ${stock} dona qoldi` : `Sotuvda bor (${stock} dona)`}
             </p>
 
             <div className="mt-3 flex items-baseline gap-3">
@@ -102,7 +104,7 @@ export function BookDetail() {
                   </span>
                   <button
                     onClick={() => setQty('book', book.id, inCart + 1)}
-                    disabled={inCart >= book.stock}
+                    disabled={inCart >= stock}
                     aria-label="Ko‘paytirish"
                     className="grid size-12 place-items-center rounded-full hover:bg-white/10 disabled:opacity-40"
                   >

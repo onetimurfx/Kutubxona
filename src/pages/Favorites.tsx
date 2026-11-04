@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { ArrowLeft, Heart, ShoppingBag } from 'lucide-react'
-import { BOOKS } from '../data/books'
+import { useCatalog } from '../lib/catalogStore'
 import { BookCard } from '../components/BookCard'
 import { EmptyState } from '../components/EmptyState'
 import { SimilarBooks } from '../components/SimilarBooks'
@@ -8,6 +8,7 @@ import { useStore } from '../lib/store'
 
 export function Favorites() {
   const { favorites, addBooks } = useStore()
+  const { books: BOOKS } = useCatalog()
   const books = favorites.map((id) => BOOKS.find((b) => b.id === id)).filter((b): b is NonNullable<typeof b> => Boolean(b))
 
   if (!books.length) {

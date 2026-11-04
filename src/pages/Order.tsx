@@ -5,9 +5,10 @@ import { BookCover } from '../components/BookCover'
 import { DemoNotice } from '../components/DemoNotice'
 import { EmptyState } from '../components/EmptyState'
 import { MiniProgress, StatusChip } from '../components/StatusChip'
-import { ICONS } from '../components/StationeryCard'
 import { TrackLookup } from '../components/TrackLookup'
 import { resolveLine } from '../lib/catalog'
+import { useCatalog } from '../lib/catalogStore'
+import { StationeryThumb } from '../components/StationeryThumb'
 import { formatDateTime, formatPhone, formatPrice, isValidPhone } from '../lib/format'
 import { ORDER_LABELS } from '../lib/orders'
 import { useStore } from '../lib/store'
@@ -17,6 +18,7 @@ const field =
 
 export function Order() {
   const { cart, orders, placeOrder, profile } = useStore()
+  useCatalog()
   const navigate = useNavigate()
   const [name, setName] = useState(profile.name)
   const [phone, setPhone] = useState(formatPhone(profile.phone))
@@ -124,16 +126,13 @@ export function Order() {
               </div>
               <ul className="mt-3 divide-y divide-mist">
                 {lines.map((l) => {
-                  const Icon = l.glyph ? ICONS[l.glyph] : null
                   return (
                     <li key={l.key} className="flex items-center gap-3 py-3">
                       <div className="w-10 shrink-0">
                         {l.book ? (
                           <BookCover title={l.book.title} author={l.book.author} cover={l.book.cover} />
                         ) : (
-                          <div className="grid aspect-square place-items-center rounded-lg" style={{ background: l.color }}>
-                            {Icon && <Icon className="size-5 text-white" strokeWidth={1.6} />}
-                          </div>
+                          <StationeryThumb color={l.color!} glyph={l.glyph!} image={l.image} className="aspect-square rounded-lg" iconClass="size-5" />
                         )}
                       </div>
                       <div className="min-w-0 flex-1">

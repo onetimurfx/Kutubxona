@@ -1,6 +1,5 @@
-import { BOOKS } from '../data/books'
-import { STATIONERY } from '../data/stationery'
-import type { Book, Category } from '../data/types'
+import type { Book, Category, StationeryItem } from '../data/types'
+import { effectiveStock, getBooks, getStationery } from './catalogStore'
 import type { CartLine } from './store'
 
 /** Lower-case, strip diacritics and every apostrophe/okina variant so "o'tkan", "o‘tkan" and "otkan" all match. */
@@ -23,15 +22,25 @@ interface Indexed {
   description: string
 }
 
-const INDEX: Indexed[] = BOOKS.map((book) => ({
-  book,
-  title: norm(book.title),
-  author: norm(book.author),
-  genre: norm(book.genre),
-  category: norm(book.category),
-  subjects: book.subjects.map(norm),
-  description: norm(book.description),
-}))
+let indexedFor: Book[] | null = null
+let indexCache: Indexed[] = []
+/** search index, rebuilt only when the catalog changes */
+function getIndex(): Indexed[] {
+  const books = getBooks()
+  if (books !== indexedFor) {
+    indexedFor = books
+    indexCache = books.map((book) => ({
+      book,
+      title: norm(book.title),
+      author: norm(book.author),
+      genre: norm(book.genre),
+      category: norm(book.category),
+      subjects: book.subjects.map(norm),
+      description: norm(book.description),
+    }))
+  }
+  return indexCache
+}
 
 const words = (s: string) => s.split(' ')
 
@@ -85,8 +94,8 @@ function tokenScore(token: string, x: Indexed): number {
 /** Every word typed must match somewhere (title, author, genre, category, subject, description). */
 export function searchBooks(query: string): Book[] {
   const tokens = norm(query).split(' ').filter(Boolean)
-  if (!tokens.length) return BOOKS
-  return INDEX.map((x) => {
+  if (!tokens.length) return getBooks()
+  return getIndex().map((x) => {
     let score = 0
     for (const t of tokens) {
       const s = tokenScore(t, x)
@@ -120,14 +129,14 @@ export function suggest(query: string, limit = 6): Suggestion[] {
   const rank = (n: string) => (n.startsWith(q) ? 0 : words(n).some((w) => w.startsWith(q)) ? 1 : 2)
   const sorted = (items: Array<[string, string]>) =>
     items.filter(([n]) => n.includes(q)).sort((a, b) => rank(a[0]) - rank(b[0]))
-  sorted(INDEX.map((x) => [x.title, x.book.title])).forEach(([, t]) => push('Kitob', t))
-  sorted(INDEX.map((x) => [x.author, x.book.author])).forEach(([, t]) => push('Muallif', t))
-  sorted(INDEX.flatMap((x) => x.book.subjects.map((s): [string, string] => [norm(s), s]))).forEach(([, t]) => push('Mavzu', t))
+  sorted(getIndex().map((x) => [x.title, x.book.title])).forEach(([, t]) => push('Kitob', t))
+  sorted(getIndex().map((x) => [x.author, x.book.author])).forEach(([, t]) => push('Muallif', t))
+  sorted(getIndex().flatMap((x) => x.book.subjects.map((s): [string, string] => [norm(s), s]))).forEach(([, t]) => push('Mavzu', t))
   return out.slice(0, limit)
 }
 
 export const TOPICS = ['sevgi', 'tarix', 'kosmos', 'pul', 'ertak', 'psixologiya', 'klassika', 'startap']
-export const AUTHORS = Array.from(new Set(BOOKS.map((b) => b.author))).slice(0, 6)
+export const getAuthors = () => Array.from(new Set(getBooks().map((b) => b.author))).slice(0, 6)
 export const CATEGORY_LIST: Category[] = [
   'Badiiy adabiyot',
   'Ilm-fan',
@@ -138,10 +147,11 @@ export const CATEGORY_LIST: Category[] = [
 
 /** Books similar to the seed books: same author, genre, category and shared subjects. */
 export function similarBooks(seedIds: string[], exclude: string[] = [], limit = 8): Book[] {
-  const seeds = BOOKS.filter((b) => seedIds.includes(b.id))
+  const all = getBooks()
+  const seeds = all.filter((b) => seedIds.includes(b.id))
   const skip = new Set([...seedIds, ...exclude])
   if (!seeds.length) return []
-  return BOOKS.filter((b) => !skip.has(b.id))
+  return all.filter((b) => !skip.has(b.id))
     .map((b) => {
       let score = 0
       for (const s of seeds) {
@@ -159,7 +169,7 @@ export function similarBooks(seedIds: string[], exclude: string[] = [], limit = 
 }
 
 export function popularBooks(exclude: string[] = [], limit = 8) {
-  return BOOKS.filter((b) => !exclude.includes(b.id) && (b.flags.includes('popular') || b.flags.includes('bestseller'))).slice(0, limit)
+  return getBooks().filter((b) => !exclude.includes(b.id) && (b.flags.includes('popular') || b.flags.includes('bestseller'))).slice(0, limit)
 }
 
 export interface ResolvedLine {
@@ -172,22 +182,24 @@ export interface ResolvedLine {
   link?: string
   book?: Book
   color?: string
-  glyph?: (typeof STATIONERY)[number]['glyph']
+  glyph?: StationeryItem['glyph']
+  image?: string
 }
 
 export function resolveLine(line: CartLine): ResolvedLine | null {
   if (line.kind === 'book') {
-    const b = BOOKS.find((x) => x.id === line.id)
+    const b = getBooks().find((x) => x.id === line.id)
     return b
-      ? { key: `book:${b.id}`, line, title: b.title, subtitle: b.author, price: b.price, stock: b.stock, link: `/book/${b.id}`, book: b }
+      ? { key: `book:${b.id}`, line, title: b.title, subtitle: b.author, price: b.price, stock: effectiveStock(b), link: `/book/${b.id}`, book: b }
       : null
   }
-  const s = STATIONERY.find((x) => x.id === line.id)
+  const s = getStationery().find((x) => x.id === line.id)
   return s
-    ? { key: `st:${s.id}`, line, title: s.name, subtitle: s.category, price: s.price, stock: s.stock, link: `/stationery/${s.id}`, color: s.color, glyph: s.glyph }
+    ? { key: `st:${s.id}`, line, title: s.name, subtitle: s.category, price: s.price, stock: effectiveStock(s), link: `/stationery/${s.id}`, color: s.color, glyph: s.glyph, image: s.image }
     : null
 }
 
 export function stockOf(kind: CartLine['kind'], id: string) {
-  return kind === 'book' ? (BOOKS.find((b) => b.id === id)?.stock ?? 0) : (STATIONERY.find((s) => s.id === id)?.stock ?? 0)
+  const item = kind === 'book' ? getBooks().find((b) => b.id === id) : getStationery().find((s) => s.id === id)
+  return item ? effectiveStock(item) : 0
 }
