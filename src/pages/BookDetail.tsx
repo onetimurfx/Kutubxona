@@ -20,7 +20,7 @@ export function BookDetail() {
   if (!book) {
     return (
       <div className="pb-36 pt-16">
-        <EmptyState icon={BookX} title="Kitob topilmadi" text="Bu manzilda kitob yo‘q. Katalogdan boshqa kitoblarni ko‘ring.">
+        <EmptyState as="h1" icon={BookX} title="Kitob topilmadi" text="Bu manzilda kitob yo‘q. Katalogdan boshqa kitoblarni ko‘ring.">
           <Link to="/search" className="rounded-full bg-ink px-6 py-3 font-semibold text-white">
             Katalogga o‘tish
           </Link>
@@ -57,7 +57,7 @@ export function BookDetail() {
               {book.category}
             </Link>
             <h1 className="mt-1 text-4xl font-extrabold">{book.title}</h1>
-            <Link to={`/search?q=${encodeURIComponent(book.author)}`} className="mt-1 inline-block text-lg text-ink-soft hover:underline">
+            <Link to={`/search?q=${encodeURIComponent(book.author)}`} className="mt-1 inline-block py-1 text-lg text-ink-soft hover:underline">
               {book.author}
             </Link>
             <p className="mt-2 flex items-center gap-1.5 text-sm font-semibold">
@@ -77,7 +77,7 @@ export function BookDetail() {
 
             <div className="mt-3 flex flex-wrap gap-2">
               {book.subjects.map((s) => (
-                <Link key={s} to={`/search?q=${encodeURIComponent(s)}`} className="rounded-full bg-white px-3 py-1 text-sm shadow-sm">
+                <Link key={s} to={`/search?q=${encodeURIComponent(s)}`} className="rounded-full bg-white px-3 py-1.5 text-sm shadow-sm">
                   {s}
                 </Link>
               ))}

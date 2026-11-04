@@ -20,7 +20,7 @@ export function Cart() {
   if (!lines.length) {
     return (
       <div className="mx-auto max-w-4xl pb-36 pt-12">
-        <EmptyState icon={ShoppingBag} title="Savat bo‘sh" text="Yoqqan kitoblaringizni savatga qo‘shing — ular shu yerda saqlanadi.">
+        <EmptyState as="h1" icon={ShoppingBag} title="Savat bo‘sh" text="Yoqqan kitoblaringizni savatga qo‘shing — ular shu yerda saqlanadi.">
           <Link to="/search" className="rounded-full bg-ink px-6 py-3 font-semibold text-white">
             Katalogni ochish
           </Link>

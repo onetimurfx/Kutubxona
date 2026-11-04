@@ -401,7 +401,7 @@ export function Print() {
       <section className="mt-9" aria-label="So‘rovlar tarixi">
         <div className="mb-3 flex items-baseline justify-between">
           <h2 className="text-xl font-bold">So‘rovlar tarixi</h2>
-          <Link to="/account?tab=prints" className="text-sm font-semibold text-teal hover:underline">
+          <Link to="/account?tab=prints" className="-my-2 py-2 pl-3 text-sm font-semibold text-teal hover:underline">
             Hisobda ko‘rish
           </Link>
         </div>

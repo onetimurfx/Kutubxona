@@ -215,7 +215,7 @@ export function Overview() {
       <Card className="mt-5">
         <div className="flex items-baseline justify-between">
           <h2 className="text-lg font-bold">So‘nggi harakatlar</h2>
-          <Link to="/admin/orders" className="text-sm font-semibold text-teal hover:underline">
+          <Link to="/admin/orders" className="-my-2 py-2 pl-3 text-sm font-semibold text-teal hover:underline">
             Buyurtmalar
           </Link>
         </div>

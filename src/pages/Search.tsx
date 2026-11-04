@@ -182,13 +182,13 @@ export function Search() {
             Filtrlar
             {activeFilters > 0 && <span className="grid size-5 place-items-center rounded-full bg-anor text-xs text-white">{activeFilters}</span>}
           </button>
-          <label className="ml-auto flex min-w-0 items-center">
+          <label className="ml-auto flex min-w-0 max-w-[210px] flex-1 items-center">
             <span className="sr-only">Saralash</span>
             <select
               value={sort}
               aria-label="Saralash"
               onChange={(e) => set({ sort: e.target.value === 'relevance' ? null : e.target.value })}
-              className="max-w-[210px] truncate rounded-full bg-white px-4 py-2 text-sm font-semibold shadow-sm"
+              className="w-full min-w-0 truncate rounded-full bg-white px-4 py-2 text-sm font-semibold shadow-sm"
             >
               {SORTS.map((s) => (
                 <option key={s.v} value={s.v}>

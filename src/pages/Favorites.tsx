@@ -14,7 +14,7 @@ export function Favorites() {
   if (!books.length) {
     return (
       <div className="mx-auto max-w-4xl pb-36 pt-12">
-        <EmptyState icon={Heart} title="Sevimlilar hozircha bo‘sh" text="Kitob ustidagi yurakcha tugmasini bosing — kitob shu yerda saqlanadi.">
+        <EmptyState as="h1" icon={Heart} title="Sevimlilar hozircha bo‘sh" text="Kitob ustidagi yurakcha tugmasini bosing — kitob shu yerda saqlanadi.">
           <Link to="/search" className="rounded-full bg-ink px-6 py-3 font-semibold text-white">
             Kitoblarni ko‘rish
           </Link>

@@ -33,7 +33,7 @@ export function Switch({ checked, onChange, label }: { checked: boolean; onChang
       aria-checked={checked}
       aria-label={label}
       onClick={() => onChange(!checked)}
-      className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${checked ? 'bg-teal' : 'bg-mist'}`}
+      className={`relative h-7 w-12 shrink-0 rounded-full transition-colors before:absolute before:-inset-2 before:content-[''] ${checked ? 'bg-teal' : 'bg-mist'}`}
     >
       <motion.span
         layout
