@@ -34,6 +34,9 @@ const wait = async (url) => {
   const issues = (a.stdout || '').split('\n').filter((l) => /^(OVERFLOW|ERRORS|NOALT|UNNAMED|H1x)/.test(l))
   console.log(`audit (overflow / console errors / alt / names / h1): ${issues.length ? issues.join('\n') : 'clean'}`)
   if (issues.length) failed++
+  const l = spawnSync('node', [path.join(__dirname, 'links.cjs')], { encoding: 'utf8' })
+  console.log((l.stdout || '').split('\n').filter((x) => /LINKS|routes visited/.test(x)).join('\n'))
+  if (l.status !== 0) failed++
   if (server) server.kill()
   process.exit(failed ? 1 : 0)
 })()

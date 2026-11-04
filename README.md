@@ -39,7 +39,7 @@ npm run preview    # serve the production build at http://127.0.0.1:4173/Kutubxo
 
 ## Tests
 
-End-to-end tests (Playwright, Chromium) live in `tests/e2e/`: Phase 2 catalog/cart, Phase 3 orders/printing/stationery/account, Phase 4 admin, plus an audit that visits every route at six viewport widths (320–1440 px) and checks horizontal overflow, console errors, image alt text, control names and headings.
+End-to-end tests (Playwright, Chromium) live in `tests/e2e/`: Phase 2 catalog/cart, Phase 3 orders/printing/stationery/account, Phase 4 admin, a link/asset crawler (every reachable route, no failed requests or broken images), plus an audit that visits every route at six viewport widths (320–1440 px) and checks horizontal overflow, console errors, image alt text, control names and headings.
 
 ```bash
 npm i -D playwright && npx playwright install chromium   # once
